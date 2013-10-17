@@ -1,5 +1,7 @@
-package dk.statsbiblioteket.autonomous.batcheventFramework;
+package dk.statsbiblioteket.medieplatform.autonomous.newspaper;
 
+import dk.statsbiblioteket.medieplatform.autonomous.DomsEventClient;
+import dk.statsbiblioteket.medieplatform.autonomous.DomsEventClientFactory;
 import org.slf4j.Logger;
 
 import java.util.Date;
@@ -58,7 +60,7 @@ public class CreateBatch {
         try {
             domsEventClient = domsEventClientFactory.createDomsEventClient();
 
-            domsEventClient.addEventToBatch(Long.parseLong(batchId), Integer.parseInt(roundTrip), premisAgent, now, "",
+            domsEventClient.addEventToBatch(batchId, Integer.parseInt(roundTrip), premisAgent, now, "",
                     "Data_Received", true);
         } catch (Exception e) {
             System.err.println("Failed adding event to batch, due to: " + e.getMessage());
