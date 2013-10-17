@@ -1,4 +1,4 @@
-package dk.statsbiblioteket.newspaper.batcheventFramework;
+package dk.statsbiblioteket.autonomous.batcheventFramework;
 
 import org.slf4j.Logger;
 
