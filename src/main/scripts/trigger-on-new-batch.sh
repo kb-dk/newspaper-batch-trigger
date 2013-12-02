@@ -5,28 +5,21 @@
 # Parameters:
 # $1 : path to config file
 #
-# Author: jrg
+# Author: jrg, ktc
 #
 
-donedir='batches-done'
+SCRIPT_PATH=$(dirname $(readlink -f $0))
+
 trigger_file='transfer_acknowledged'
 
-config_filename="$1"
-if [[ -z "$config_filename" ]]; then
-	echo 'config-filename not received' >&2
+config="$1"
+if [ -z "$config" ]; then
+	echo 'config not received' >&2
+    echo "uasge: $0 /path/to/config.sh" >&2
 	exit 1
 fi
 
-# Get config from file
-source "$config_filename"
-
-# Get path to directory of this script
-my_path="`dirname \"$0\"`"              # relative
-my_path="`( cd \"$my_path\" && pwd )`"  # absolutized and normalized
-if [[ -z "$my_path" ]] ; then
-	echo 'could not access path' >&2
-    exit 1
-fi
+source "$config"
 
 cd "$path_to_dir_of_batches"
 
@@ -38,23 +31,23 @@ for batch_dirname in *; do
 	fi
 
     # Check for trigger-file
-    if [[ ! -f "$batch_dirname/$trigger_file" ]]; then
+    if [ ! -f "$batch_dirname/$trigger_file" ]; then
         # Trigger-file does not exist, so batch is not ready for us, skip it
         continue
     fi
 
 	# Skip batches that are already done
-	if [[ -f "$my_path/$donedir/$batch_dirname" ]]; then
+	if [ -f "$donedir/$batch_dirname" ]; then
 		continue
 	fi
 
-	batch_id=`echo "$batch_dirname" | sed -r 's/^B([^-]+).+/\1/g'`
-	roundtrip=`echo "$batch_dirname" | sed -r 's/^B[^-]+\-RT([0-9]+)/\1/g'`
+	batch_id=$(echo "$batch_dirname" | sed -r 's/^B([^-]+).+/\1/g')
+	roundtrip=$(echo "$batch_dirname" | sed -r 's/^B[^-]+\-RT([0-9]+)/\1/g')
 
 	# Create batch in DOMS
-	java -classpath $my_path/../config/:$my_path/../lib/'*' dk.statsbiblioteket.medieplatform.autonomous.newspaper.CreateBatch "$batch_id" "$roundtrip" "$trigger_name" "$url_to_doms" "$doms_username" "$doms_password" "$url_to_pid_gen"
+	java -classpath $SCRIPT_PATH/../conf/:$SCRIPT_PATH/../lib/'*' dk.statsbiblioteket.medieplatform.autonomous.newspaper.CreateBatch "$batch_id" "$roundtrip" "$trigger_name" "$url_to_doms" "$doms_username" "$doms_password" "$url_to_pid_gen"
 
 	# Mark batch as done, by creating an empty file with the batch's name
-	touch "$my_path/$donedir/$batch_dirname"
+	touch "$donedir/$batch_dirname"
 done
 

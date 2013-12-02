@@ -22,3 +22,6 @@ url_to_pid_gen='${pidgenerator.location}'
 
 # Name of the trigger-script
 trigger_name='register-batch-trigger'
+
+# Location of var folder for storing processed batches
+donedir="$HOME/var/batches-done"
