@@ -1,7 +1,8 @@
 package dk.statsbiblioteket.medieplatform.autonomous.newspaper;
 
-import dk.statsbiblioteket.medieplatform.autonomous.DomsEventClient;
-import dk.statsbiblioteket.medieplatform.autonomous.DomsEventClientFactory;
+import dk.statsbiblioteket.medieplatform.autonomous.DomsEventStorage;
+import dk.statsbiblioteket.medieplatform.autonomous.DomsEventStorageFactory;
+
 import org.slf4j.Logger;
 
 import java.util.Date;
@@ -30,8 +31,8 @@ public class CreateBatch {
         String domsUser;
         String domsPass;
         String urlToPidGen;
-        DomsEventClientFactory domsEventClientFactory = new DomsEventClientFactory();
-        DomsEventClient domsEventClient;
+        DomsEventStorageFactory domsEventStorageFactory = new DomsEventStorageFactory();
+        DomsEventStorage domsEventClient;
         Date now = new Date();
 
         log.info("Entered main");
@@ -52,13 +53,13 @@ public class CreateBatch {
         domsPass = args[5];
         urlToPidGen=args[6];
 
-        domsEventClientFactory.setFedoraLocation(domsUrl);
-        domsEventClientFactory.setUsername(domsUser);
-        domsEventClientFactory.setPassword(domsPass);
-        domsEventClientFactory.setPidGeneratorLocation(urlToPidGen);
+        domsEventStorageFactory.setFedoraLocation(domsUrl);
+        domsEventStorageFactory.setUsername(domsUser);
+        domsEventStorageFactory.setPassword(domsPass);
+        domsEventStorageFactory.setPidGeneratorLocation(urlToPidGen);
 
         try {
-            domsEventClient = domsEventClientFactory.createDomsEventClient();
+            domsEventClient = domsEventStorageFactory.createDomsEventStorage();
 
             domsEventClient.addEventToBatch(batchId, Integer.parseInt(roundTrip), premisAgent, now, "",
                     "Data_Received", true);
