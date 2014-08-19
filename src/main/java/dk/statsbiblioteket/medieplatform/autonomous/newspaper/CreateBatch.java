@@ -1,15 +1,16 @@
 package dk.statsbiblioteket.medieplatform.autonomous.newspaper;
 
 import dk.statsbiblioteket.medieplatform.autonomous.Batch;
+import dk.statsbiblioteket.medieplatform.autonomous.CommunicationException;
 import dk.statsbiblioteket.medieplatform.autonomous.DomsEventStorage;
 import dk.statsbiblioteket.medieplatform.autonomous.DomsEventStorageFactory;
 
 import dk.statsbiblioteket.medieplatform.autonomous.Event;
-import dk.statsbiblioteket.medieplatform.autonomous.NotFoundException;
+
 import org.slf4j.Logger;
 
 import java.util.Date;
-
+import java.util.List;
 
 /**
  * Called from shell script with arguments to create a batch object in DOMS with proper Premis event added.
@@ -17,6 +18,7 @@ import java.util.Date;
  * @author jrg
  */
 public class CreateBatch {
+    private static final String STOPPED_STATE = "Manually_stopped";
     public static Logger log = org.slf4j.LoggerFactory.getLogger(CreateBatch.class);
 
     /**
@@ -60,39 +62,7 @@ public class CreateBatch {
         try {
             domsEventClient = domsEventStorageFactory.createDomsEventStorage();
             final int roundTripNumber = Integer.parseInt(roundTrip);
-            boolean success = true;
-            String message = "";
-
-            for (int olderRoundTripNumber=0; olderRoundTripNumber<roundTripNumber; olderRoundTripNumber++) {
-                try {
-                    Batch olderRoundtrip = domsEventClient.getBatch(batchId, olderRoundTripNumber);
-                    if (isApproved(olderRoundtrip)) {
-                        message  +=  "Batch ("+olderRoundTripNumber+") is already approved, so this roundtrip ("+roundTripNumber+")should not be triggered here\n";
-                        success = false;
-
-                    } else if ( isReadyForManualQA(olderRoundtrip)) {
-                        message
-                                += "Batch (" + olderRoundTripNumber + ") is already in manual qa, so this roundtrip (" + roundTripNumber + ")should not be triggered here\n";
-
-                        success = false;
-
-                    }
-                } catch (NotFoundException e) {
-                    //ignore, proceed
-                }
-            }
-            domsEventClient.addEventToBatch(batchId, roundTripNumber, premisAgent, now, message, "Data_Received", success);
-            if (!success){
-                for (int olderRoundTripNumber = 0; olderRoundTripNumber < roundTripNumber; olderRoundTripNumber++) {
-                    domsEventClient.addEventToBatch(batchId,
-                            olderRoundTripNumber,
-                            premisAgent,
-                            now,
-                            "Newer batch (" + roundTripNumber + ") have been received, so this batch should be stopped",
-                            "Manually_stopped",
-                            false);
-                }
-            }
+            doWork(batchId, roundTripNumber, premisAgent, domsEventClient, now);
         } catch (Exception e) {
             System.err.println("Failed adding event to batch, due to: " + e.getMessage());
             log.error("Caught exception: ", e);
@@ -100,26 +70,41 @@ public class CreateBatch {
         }
     }
 
-    private static boolean isReadyForManualQA(Batch olderRoundtrip) {
-        boolean approved = false;
-        for (Event event : olderRoundtrip.getEventList()) {
-            if (event.getEventID().equals("Approved")) {
-                approved = true;
-                break;
+    public static void doWork(String batchId, int roundTripNumber, String premisAgent, DomsEventStorage domsEventClient, Date now) throws CommunicationException {
+        boolean success = true;
+        String message = "";
+
+        List<Batch> roundtrips = domsEventClient.getAllRoundTrips(batchId);
+        for (Batch roundtrip : roundtrips) {
+            if (roundtrip.getRoundTripNumber() > roundTripNumber) {
+                message  +=  "Roundtrip ("+roundtrip.getRoundTripNumber()+") is newer than this roundtrip ("+roundTripNumber+"), so this roundtrip will not be triggered here\n";
+                log.warn("Not adding new batch '{}' roundtrip {} because a newer roundtrip {} exists", batchId, roundTripNumber, roundtrip.getRoundTripNumber());
+                success = false;
+
+            }
+            if (isApproved(roundtrip)) {
+                message  +=  "Roundtrip ("+roundtrip.getRoundTripNumber()+") is already approved, so this roundtrip ("+roundTripNumber+") should not be triggered here\n";
+                log.warn("Not adding new batch '{}' roundtrip {} because another roundtrip {} is already approved", batchId, roundTripNumber, roundtrip.getRoundTripNumber());
+                success = false;
             }
         }
-        for (Event event : olderRoundtrip.getEventList()) {
-            if (event.getEventID().equals("Manual_QA_Flagged")) {
-                return event.isSuccess() && !approved;
+        domsEventClient.addEventToBatch(batchId, roundTripNumber, premisAgent, now, message, "Data_Received", success);
+        if (success){
+            for (Batch roundtrip : roundtrips) {
+                if (roundtrip.getRoundTripNumber() != roundTripNumber) {
+                    domsEventClient.addEventToBatch(batchId, roundtrip.getRoundTripNumber(), premisAgent, now,
+                                                    "Newer roundtrip (" + roundTripNumber + ") has been received, so this batch should be stopped",
+                                                    STOPPED_STATE, false);
+                    log.warn("Stopping processing of batch '{}' roundtrip {} because a newer roundtrip {} was found", batchId, roundtrip.getRoundTripNumber(), roundTripNumber);
+                }
             }
         }
-        return false;
     }
 
     private static boolean isApproved(Batch olderRoundtrip) {
         for (Event event : olderRoundtrip.getEventList()) {
-            if (event.getEventID().equals("Approved")){
-                return event.isSuccess();
+            if (event.getEventID().equals("Approved") && event.isSuccess()) {
+                return true;
             }
         }
         return false;
