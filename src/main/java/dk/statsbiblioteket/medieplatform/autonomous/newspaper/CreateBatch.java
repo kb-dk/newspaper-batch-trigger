@@ -103,7 +103,7 @@ public class CreateBatch {
 
     private static boolean isApproved(Batch olderRoundtrip) {
         for (Event event : olderRoundtrip.getEventList()) {
-            if (event.getEventID().equals("Approved") && event.isSuccess()) {
+            if (event.getEventID().equals("Roundtrip_Approved") && event.isSuccess()) {
                 return true;
             }
         }

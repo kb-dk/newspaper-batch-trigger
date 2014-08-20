@@ -92,7 +92,7 @@ public class CreateBatchTest {
     public void testDoWorkRT2whereRT1Approved() throws Exception {
         Batch batch1 = new Batch("1234", 1);
         Event event = new Event();
-        event.setEventID("Approved");
+        event.setEventID("Roundtrip_Approved");
         event.setSuccess(true);
         batch1.setEventList(Arrays.asList(event));
         Batch batch2 = new Batch("1234", 2);
