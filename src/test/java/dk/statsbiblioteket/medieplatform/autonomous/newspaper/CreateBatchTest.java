@@ -43,7 +43,7 @@ public class CreateBatchTest {
 
     /**
      * Test normal case: RT2 received, RT1 already exists.
-     * Expected behaviour: RT2 has an event added. RT2 gets a stop event.
+     * Expected behaviour: RT2 has an event added. RT1 gets a stop event.
      */
     @Test
     public void testDoWorkRT2() throws Exception {

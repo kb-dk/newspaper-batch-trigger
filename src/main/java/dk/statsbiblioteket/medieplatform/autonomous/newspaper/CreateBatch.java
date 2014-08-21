@@ -70,6 +70,18 @@ public class CreateBatch {
         }
     }
 
+    /**
+     * This will add the state Data_Received for a given batch and roundtrip.
+     * This will fail if a later roundtrip exists, and also it will stop earlier roundtrips from processing,
+     * should they exist.
+     *
+     * @param batchId The batch to register
+     * @param roundTripNumber The roundtrip to register
+     * @param premisAgent The string used as premis agent id
+     * @param domsEventClient The doms event client used for registering events.
+     * @param now The timestamp to use.
+     * @throws CommunicationException On trouble registering event.
+     */
     public static void doWork(String batchId, int roundTripNumber, String premisAgent, DomsEventStorage domsEventClient, Date now) throws CommunicationException {
         boolean success = true;
         String message = "";
