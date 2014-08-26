@@ -59,7 +59,7 @@ public class CreateBatchTest {
         verify(domsStorage, times(1)).getAllRoundTrips("1234");
         verify(domsStorage, times(1)).addEventToBatch(eq("1234"), eq(2), eq("premisAgent"), Matchers.<Date>any(),
                                                       anyString(), eq("Data_Received"), eq(true));
-        verify(domsStorage, times(1)).addEventToBatch(eq("1234"), eq(1), eq("premisAgent"), Matchers.<Date>any(), contains("Newer roundtrip (2) has been received, so this batch should be stopped"), eq("Manually_stopped"), eq(false));
+        verify(domsStorage, times(1)).addEventToBatch(eq("1234"), eq(1), eq("premisAgent"), Matchers.<Date>any(), contains("Newer roundtrip (2) has been received, so this batch should be stopped"), eq("Manually_stopped"), eq(true));
         verifyNoMoreInteractions(domsStorage);
     }
 
@@ -104,7 +104,9 @@ public class CreateBatchTest {
         CreateBatch.doWork("1234", 2, "premisAgent", domsStorage, new Date());
         verify(domsStorage, times(1)).getAllRoundTrips("1234");
         verify(domsStorage, times(1)).addEventToBatch(eq("1234"), eq(2), eq("premisAgent"), Matchers.<Date>any(),
-                                                      contains("Roundtrip (1) is already approved, so this roundtrip (2)"), eq("Data_Received"), eq(false));
+                                                      contains("Roundtrip (1) is already approved, so this roundtrip (2)"), eq("Data_Received"), eq(true));
+        verify(domsStorage, times(1)).addEventToBatch(eq("1234"), eq(2), eq("premisAgent"), Matchers.<Date>any(),
+                contains("Another Roundtrip is already approved, so this batch should be stopped"), eq("Manually_stopped"), eq(true));
         verifyNoMoreInteractions(domsStorage);
     }
 }
