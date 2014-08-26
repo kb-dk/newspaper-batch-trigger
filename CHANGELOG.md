@@ -1,3 +1,7 @@
+1.4
+* Updated to batch event framework version 1.10
+* Check if a roundtrip of a batch have previously been approved before initiating a new batch.
+
 1.3
 * Updated to newspaper-parent 1.2
 * Restructuring after review
