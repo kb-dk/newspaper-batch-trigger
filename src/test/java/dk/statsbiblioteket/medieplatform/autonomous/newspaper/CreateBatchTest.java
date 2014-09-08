@@ -32,7 +32,7 @@ public class CreateBatchTest {
         batch1.setEventList(Collections.<Event>emptyList());
 
         DomsEventStorage domsStorage = mock(DomsEventStorage.class);
-        when(domsStorage.getAllRoundTrips("1234")).thenReturn(Arrays.asList(batch1));
+        when(domsStorage.getAllRoundTrips("1234")).thenReturn(null);
 
         CreateBatch.doWork("1234", 1, "premisAgent", domsStorage, new Date());
         verify(domsStorage, times(1)).getAllRoundTrips("1234");
