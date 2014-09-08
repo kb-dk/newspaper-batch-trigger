@@ -24,6 +24,7 @@ public class CreateBatchTest {
 
     /**
      * Test normal case: RT1 received, no other roundtrips exist.
+     * Note: The batch is not known by DOMS, only MFPAK, so the getAllRoundTrips should return null.
      * Expected behaviour: RT1 has an event added.
      */
     @Test
@@ -53,7 +54,7 @@ public class CreateBatchTest {
         batch2.setEventList(Collections.<Event>emptyList());
 
         DomsEventStorage domsStorage = mock(DomsEventStorage.class);
-        when(domsStorage.getAllRoundTrips("1234")).thenReturn(Arrays.asList(batch1, batch2));
+        when(domsStorage.getAllRoundTrips("1234")).thenReturn(Arrays.asList(batch1));
 
         CreateBatch.doWork("1234", 2, "premisAgent", domsStorage, new Date());
         verify(domsStorage, times(1)).getAllRoundTrips("1234");
@@ -75,7 +76,7 @@ public class CreateBatchTest {
         batch2.setEventList(Collections.<Event>emptyList());
 
         DomsEventStorage domsStorage = mock(DomsEventStorage.class);
-        when(domsStorage.getAllRoundTrips("1234")).thenReturn(Arrays.asList(batch1, batch2));
+        when(domsStorage.getAllRoundTrips("1234")).thenReturn(Arrays.asList(batch2));
 
         CreateBatch.doWork("1234", 1, "premisAgent", domsStorage, new Date());
         verify(domsStorage, times(1)).getAllRoundTrips("1234");
@@ -99,7 +100,7 @@ public class CreateBatchTest {
         batch2.setEventList(Collections.<Event>emptyList());
 
         DomsEventStorage domsStorage = mock(DomsEventStorage.class);
-        when(domsStorage.getAllRoundTrips("1234")).thenReturn(Arrays.asList(batch1, batch2));
+        when(domsStorage.getAllRoundTrips("1234")).thenReturn(Arrays.asList(batch1));
 
         CreateBatch.doWork("1234", 2, "premisAgent", domsStorage, new Date());
         verify(domsStorage, times(1)).getAllRoundTrips("1234");
