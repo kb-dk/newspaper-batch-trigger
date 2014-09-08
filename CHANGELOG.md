@@ -1,3 +1,6 @@
+1.5
+* Fix null pointer exception when no other roundtrips are present
+
 1.4
 * Updated to batch event framework version 1.10
 * Check if a roundtrip of a batch have previously been approved before initiating a new batch.
