@@ -1,3 +1,6 @@
+1.6
+* Fix null pointer exception, and fix unit test with faulty mock behavior
+
 1.5
 * Fix null pointer exception when no other roundtrips are present
 
