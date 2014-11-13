@@ -1,3 +1,6 @@
+1.7
+* Updates to example documentation
+
 1.6
 * Fix null pointer exception, and fix unit test with faulty mock behavior
 
