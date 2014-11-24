@@ -50,13 +50,13 @@ for batch_dirname in *; do
 		continue
 	fi
 
+	# Mark batch as done, by creating an empty file with the batch's name
+	touch "$donedir/$batch_dirname"
+
 	batch_id=$(echo "$batch_dirname" | sed -r 's/^B([^-]+).+/\1/g')
 	roundtrip=$(echo "$batch_dirname" | sed -r 's/^B[^-]+\-RT([0-9]+)/\1/g')
 
 	# Create batch in DOMS
 	java -classpath $SCRIPT_PATH/../conf/:$SCRIPT_PATH/../lib/'*' dk.statsbiblioteket.medieplatform.autonomous.newspaper.CreateBatch "$batch_id" "$roundtrip" "$trigger_name" "$url_to_doms" "$doms_username" "$doms_password" "$url_to_pid_gen"
-
-	# Mark batch as done, by creating an empty file with the batch's name
-	touch "$donedir/$batch_dirname"
 done
 
