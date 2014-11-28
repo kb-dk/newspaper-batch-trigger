@@ -6,6 +6,7 @@ import org.testng.annotations.Test;
 import dk.statsbiblioteket.medieplatform.autonomous.Batch;
 import dk.statsbiblioteket.medieplatform.autonomous.DomsEventStorage;
 import dk.statsbiblioteket.medieplatform.autonomous.Event;
+import dk.statsbiblioteket.medieplatform.autonomous.NewspaperDomsEventStorage;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -32,12 +33,12 @@ public class CreateBatchTest {
         Batch batch1 = new Batch("1234", 1);
         batch1.setEventList(Collections.<Event>emptyList());
 
-        DomsEventStorage domsStorage = mock(DomsEventStorage.class);
+        NewspaperDomsEventStorage domsStorage = mock(NewspaperDomsEventStorage.class);
         when(domsStorage.getAllRoundTrips("1234")).thenReturn(null);
 
-        CreateBatch.doWork("1234", 1, "premisAgent", domsStorage, new Date());
+        CreateBatch.doWork(new Batch("1234", 1), "premisAgent", domsStorage, new Date());
         verify(domsStorage, times(1)).getAllRoundTrips("1234");
-        verify(domsStorage, times(1)).addEventToBatch(eq("1234"), eq(1), eq("premisAgent"), Matchers.<Date>any(),
+        verify(domsStorage, times(1)).addEventToItem(eq(new Batch("1234", 1)), eq("premisAgent"), Matchers.<Date>any(),
                                                       anyString(), eq("Data_Received"), eq(true));
         verifyNoMoreInteractions(domsStorage);
     }
@@ -53,14 +54,14 @@ public class CreateBatchTest {
         Batch batch2 = new Batch("1234", 2);
         batch2.setEventList(Collections.<Event>emptyList());
 
-        DomsEventStorage domsStorage = mock(DomsEventStorage.class);
+        NewspaperDomsEventStorage domsStorage = mock(NewspaperDomsEventStorage.class);
         when(domsStorage.getAllRoundTrips("1234")).thenReturn(Arrays.asList(batch1));
 
-        CreateBatch.doWork("1234", 2, "premisAgent", domsStorage, new Date());
+        CreateBatch.doWork(new Batch("1234", 2), "premisAgent", domsStorage, new Date());
         verify(domsStorage, times(1)).getAllRoundTrips("1234");
-        verify(domsStorage, times(1)).addEventToBatch(eq("1234"), eq(2), eq("premisAgent"), Matchers.<Date>any(),
+        verify(domsStorage, times(1)).addEventToItem(eq(new Batch("1234", 2)), eq("premisAgent"), Matchers.<Date>any(),
                                                       anyString(), eq("Data_Received"), eq(true));
-        verify(domsStorage, times(1)).addEventToBatch(eq("1234"), eq(1), eq("premisAgent"), Matchers.<Date>any(), contains("Newer roundtrip (2) has been received, so this batch should be stopped"), eq("Manually_stopped"), eq(true));
+        verify(domsStorage, times(1)).addEventToItem(eq(new Batch("1234", 1)), eq("premisAgent"), Matchers.<Date>any(), contains("Newer roundtrip (2) has been received, so this batch should be stopped"), eq("Manually_stopped"), eq(true));
         verifyNoMoreInteractions(domsStorage);
     }
 
@@ -75,12 +76,12 @@ public class CreateBatchTest {
         Batch batch2 = new Batch("1234", 2);
         batch2.setEventList(Collections.<Event>emptyList());
 
-        DomsEventStorage domsStorage = mock(DomsEventStorage.class);
+        NewspaperDomsEventStorage domsStorage = mock(NewspaperDomsEventStorage.class);
         when(domsStorage.getAllRoundTrips("1234")).thenReturn(Arrays.asList(batch2));
 
-        CreateBatch.doWork("1234", 1, "premisAgent", domsStorage, new Date());
+        CreateBatch.doWork(new Batch("1234", 1), "premisAgent", domsStorage, new Date());
         verify(domsStorage, times(1)).getAllRoundTrips("1234");
-        verify(domsStorage, times(1)).addEventToBatch(eq("1234"), eq(1), eq("premisAgent"), Matchers.<Date>any(),
+        verify(domsStorage, times(1)).addEventToItem(eq(new Batch("1234", 1)), eq("premisAgent"), Matchers.<Date>any(),
                                                       contains("Roundtrip (2) is newer than this roundtrip (1)"), eq("Data_Received"), eq(false));
         verifyNoMoreInteractions(domsStorage);
     }
@@ -99,14 +100,14 @@ public class CreateBatchTest {
         Batch batch2 = new Batch("1234", 2);
         batch2.setEventList(Collections.<Event>emptyList());
 
-        DomsEventStorage domsStorage = mock(DomsEventStorage.class);
+        NewspaperDomsEventStorage domsStorage = mock(NewspaperDomsEventStorage.class);
         when(domsStorage.getAllRoundTrips("1234")).thenReturn(Arrays.asList(batch1));
 
-        CreateBatch.doWork("1234", 2, "premisAgent", domsStorage, new Date());
+        CreateBatch.doWork(new Batch("1234", 2), "premisAgent", domsStorage, new Date());
         verify(domsStorage, times(1)).getAllRoundTrips("1234");
-        verify(domsStorage, times(1)).addEventToBatch(eq("1234"), eq(2), eq("premisAgent"), Matchers.<Date>any(),
+        verify(domsStorage, times(1)).addEventToItem(eq(new Batch("1234", 2)), eq("premisAgent"), Matchers.<Date>any(),
                                                       contains("Roundtrip (1) is already approved, so this roundtrip (2)"), eq("Data_Received"), eq(true));
-        verify(domsStorage, times(1)).addEventToBatch(eq("1234"), eq(2), eq("premisAgent"), Matchers.<Date>any(),
+        verify(domsStorage, times(1)).addEventToItem(eq(new Batch("1234", 2)), eq("premisAgent"), Matchers.<Date>any(),
                 contains("Another Roundtrip is already approved, so this batch should be stopped"), eq("Manually_stopped"), eq(true));
         verifyNoMoreInteractions(domsStorage);
     }
