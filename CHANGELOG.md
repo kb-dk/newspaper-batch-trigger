@@ -1,3 +1,7 @@
+1.8
+* Use newest version of framework
+* Register batch as processed before working on it
+
 1.7
 * Updates to example documentation
 

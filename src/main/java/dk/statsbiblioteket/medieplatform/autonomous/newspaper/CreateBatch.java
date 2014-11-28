@@ -2,9 +2,9 @@ package dk.statsbiblioteket.medieplatform.autonomous.newspaper;
 
 import dk.statsbiblioteket.medieplatform.autonomous.Batch;
 import dk.statsbiblioteket.medieplatform.autonomous.CommunicationException;
-import dk.statsbiblioteket.medieplatform.autonomous.DomsEventStorage;
-import dk.statsbiblioteket.medieplatform.autonomous.DomsEventStorageFactory;
 import dk.statsbiblioteket.medieplatform.autonomous.Event;
+import dk.statsbiblioteket.medieplatform.autonomous.NewspaperDomsEventStorage;
+import dk.statsbiblioteket.medieplatform.autonomous.NewspaperDomsEventStorageFactory;
 
 import org.slf4j.Logger;
 
@@ -36,8 +36,8 @@ public class CreateBatch {
         String domsUser;
         String domsPass;
         String urlToPidGen;
-        DomsEventStorageFactory domsEventStorageFactory = new DomsEventStorageFactory();
-        DomsEventStorage domsEventClient;
+        NewspaperDomsEventStorageFactory domsEventStorageFactory = new NewspaperDomsEventStorageFactory();
+        NewspaperDomsEventStorage domsEventClient;
         Date now = new Date();
         log.info("Entered main");
         if (args.length != 7) {
@@ -62,7 +62,7 @@ public class CreateBatch {
         try {
             domsEventClient = domsEventStorageFactory.createDomsEventStorage();
             final int roundTripNumber = Integer.parseInt(roundTrip);
-            doWork(batchId, roundTripNumber, premisAgent, domsEventClient, now);
+            doWork(new Batch(batchId, roundTripNumber), premisAgent, domsEventClient, now);
         } catch (Exception e) {
             System.err.println("Failed adding event to batch, due to: " + e.getMessage());
             log.error("Caught exception: ", e);
@@ -75,50 +75,51 @@ public class CreateBatch {
      * This will fail if a later roundtrip exists, and also it will stop earlier roundtrips from processing,
      * should they exist.
      *
-     * @param batchId The batch to register
-     * @param roundTripNumber The roundtrip to register
+     * @param batch The batch to register
      * @param premisAgent The string used as premis agent id
      * @param domsEventClient The doms event client used for registering events.
      * @param now The timestamp to use.
      * @throws CommunicationException On trouble registering event.
      */
-    public static void doWork(String batchId, int roundTripNumber, String premisAgent, DomsEventStorage domsEventClient, Date now) throws CommunicationException {
+    public static void doWork(Batch batch, String premisAgent, NewspaperDomsEventStorage domsEventClient, Date now) throws CommunicationException {
         boolean alreadyApproved = false;
         boolean newerRoundTripAlreadyReceived = false;
 
 
         String message = "";
 
-        List<Batch> roundtrips = domsEventClient.getAllRoundTrips(batchId);
+        List<Batch> roundtrips = domsEventClient.getAllRoundTrips(batch.getBatchID());
         if(roundtrips == null) {
             roundtrips = Collections.EMPTY_LIST;
         }
         for (Batch roundtrip : roundtrips) {
-            if (roundtrip.getRoundTripNumber() > roundTripNumber) {
-                message  +=  "Roundtrip ("+roundtrip.getRoundTripNumber()+") is newer than this roundtrip ("+roundTripNumber+"), so this roundtrip will not be triggered here\n";
-                log.warn("Not adding new batch '{}' roundtrip {} because a newer roundtrip {} exists", batchId, roundTripNumber, roundtrip.getRoundTripNumber());
+            if (roundtrip.getRoundTripNumber() > batch.getRoundTripNumber()) {
+                message  +=  "Roundtrip ("+roundtrip.getRoundTripNumber()+") is newer than this roundtrip ("+batch.getRoundTripNumber()+"), so this roundtrip will not be triggered here\n";
+                log.warn("Not adding new batch '{}' because a newer roundtrip {} exists", batch.getFullID(), roundtrip.getRoundTripNumber());
                 newerRoundTripAlreadyReceived = true;
 
             }
             if (isApproved(roundtrip)) {
-                message  +=  "Roundtrip ("+roundtrip.getRoundTripNumber()+") is already approved, so this roundtrip ("+roundTripNumber+") should not be triggered here\n";
-                log.warn("Stopping batch '{}' roundtrip {} because another roundtrip {} is already approved", batchId, roundTripNumber, roundtrip.getRoundTripNumber());
+                message  +=  "Roundtrip ("+roundtrip.getRoundTripNumber()+") is already approved, so this roundtrip ("+batch.getRoundTripNumber()+") should not be triggered here\n";
+                log.warn("Stopping batch '{}' because another roundtrip {} is already approved", batch.getFullID(), roundtrip.getRoundTripNumber());
                 alreadyApproved = true;
 
             }
         }
-        domsEventClient.addEventToBatch(batchId, roundTripNumber, premisAgent, now, message, "Data_Received", !newerRoundTripAlreadyReceived);
+        domsEventClient.addEventToItem(batch, premisAgent, now, message, "Data_Received",
+                                       !newerRoundTripAlreadyReceived);
         if (alreadyApproved){
-            domsEventClient.addEventToBatch(batchId, roundTripNumber, premisAgent, now,
-                    "Another Roundtrip is already approved, so this batch should be stopped",
-                    STOPPED_STATE, true);
+            domsEventClient.addEventToItem(batch, premisAgent, now,
+                                           "Another Roundtrip is already approved, so this batch should be stopped",
+                                           STOPPED_STATE, true);
         } else if (!newerRoundTripAlreadyReceived){
             for (Batch roundtrip : roundtrips) {
-                if (roundtrip.getRoundTripNumber() != roundTripNumber) {
-                    domsEventClient.addEventToBatch(batchId, roundtrip.getRoundTripNumber(), premisAgent, now,
-                                                    "Newer roundtrip (" + roundTripNumber + ") has been received, so this batch should be stopped",
-                                                    STOPPED_STATE, true);
-                    log.warn("Stopping processing of batch '{}' roundtrip {} because a newer roundtrip {} was received", batchId, roundtrip.getRoundTripNumber(), roundTripNumber);
+                if (!roundtrip.getRoundTripNumber().equals(batch.getRoundTripNumber())) {
+                    domsEventClient.addEventToItem(roundtrip, premisAgent, now,
+                                                   "Newer roundtrip (" + batch.getRoundTripNumber()
+                                                           + ") has been received, so this batch should be stopped",
+                                                   STOPPED_STATE, true);
+                    log.warn("Stopping processing of batch '{}' because a newer roundtrip '{}' was received", roundtrip.getFullID(), batch.getFullID());
                 }
             }
         }
