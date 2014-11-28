@@ -9,13 +9,13 @@
     </parent>
 
     <artifactId>batch-trigger</artifactId>
-    <version>1.8</version>
+    <version>1.9-SNAPSHOT</version>
 
     <scm>
         <url>https://github.com/statsbiblioteket/newspaper-batch-trigger</url>
         <connection>scm:git:https://github.com/statsbiblioteket/newspaper-batch-trigger.git</connection>
         <developerConnection>scm:git:git@github.com:statsbiblioteket/newspaper-batch-trigger.git</developerConnection>
-        <tag>batch-trigger-1.8</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <dependencies>
