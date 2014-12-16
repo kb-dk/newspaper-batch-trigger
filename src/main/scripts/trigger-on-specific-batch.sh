@@ -38,6 +38,12 @@ batch_id=$2
 roundtrip=$3
 batch_dirname="B${batch_id}-RT${roundtrip}"
 
+# Check directory exists
+if [ ! -d "$batch_dirname" ]; then
+	echo "This batch does not exist. Exiting."
+	exit 1
+fi
+
 # Check for trigger-file
 if [ ! -f "$batch_dirname/$trigger_file" ]; then
 	# Trigger-file does not exist, so batch is not ready for us, skip it
