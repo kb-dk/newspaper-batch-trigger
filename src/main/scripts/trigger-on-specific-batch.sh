@@ -18,9 +18,11 @@ SCRIPT_PATH=$(dirname $(readlink -f $0))
 trigger_file=transfer_acknowledged
 
 config="$1"
-if [ -z "$config" ]; then
-	echo "config not received" >&2
-	echo "usage: $(basename $0) /path/to/config.sh" >&2
+batch_id=$2
+roundtrip=$3
+if [ -z "$roundtrip" ]; then
+	echo "config, batch or roundtrip_id not received" >&2
+	echo "usage: $(basename $0) /path/to/config.sh batch_id roundtrip_number" >&2
 	exit 1
 fi
 
@@ -34,8 +36,6 @@ done
 
 cd "$path_to_dir_of_batches"
 
-batch_id=$2
-roundtrip=$3
 batch_dirname="B${batch_id}-RT${roundtrip}"
 
 # Check directory exists
