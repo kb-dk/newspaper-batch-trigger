@@ -1,3 +1,6 @@
+1.9
+* Add a script for triggering a specific batch
+
 1.8
 * Use newest version of framework
 * Register batch as processed before working on it
