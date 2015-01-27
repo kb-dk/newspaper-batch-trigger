@@ -39,7 +39,7 @@ public class CreateBatch {
         NewspaperDomsEventStorageFactory domsEventStorageFactory = new NewspaperDomsEventStorageFactory();
         NewspaperDomsEventStorage domsEventClient;
         Date now = new Date();
-        log.info("Entered main");
+
         if (args.length != 7) {
             System.out.println("Not the right amount of arguments");
             System.out.println("Receives the following arguments (in this order) to create a batch object in DOMS:");
@@ -55,6 +55,7 @@ public class CreateBatch {
         domsUser = args[4];
         domsPass = args[5];
         urlToPidGen = args[6];
+        log.info("Entered main for batch B{}-RT{}",batchId,roundTrip);
         domsEventStorageFactory.setFedoraLocation(domsUrl);
         domsEventStorageFactory.setUsername(domsUser);
         domsEventStorageFactory.setPassword(domsPass);
