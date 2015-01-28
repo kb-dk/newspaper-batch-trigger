@@ -17,9 +17,9 @@ trigger_file=transfer_acknowledged
 
 config="$1"
 if [ -z "$config" ]; then
-    echo "config not received" >&2
-    echo "usage: $(basename $0) /path/to/config.sh" >&2
-    exit 1
+	echo "config not received" >&2
+	echo "usage: $(basename $0) /path/to/config.sh" >&2
+	exit 1
 fi
 
 source "$config"
@@ -33,27 +33,30 @@ done
 cd "$path_to_dir_of_batches"
 
 for batch_dirname in *; do
-    # Check format of dirname
-    if [[ ! "$batch_dirname" =~ ^B[^-]+\-RT[0-9]+$ ]]; then
-        # Dirname not recognized as a batch, skip it
-        continue
-    fi
+	# Check format of dirname
+	if [[ ! "$batch_dirname" =~ ^B[^-]+\-RT[0-9]+$ ]]; then
+		# Dirname not recognized as a batch, skip it
+		continue
+	fi
 
-    # Check for trigger-file
-    if [ ! -f "$batch_dirname/$trigger_file" ]; then
-        # Trigger-file does not exist, so batch is not ready for us, skip it
-        continue
-    fi
+	# Check for trigger-file
+	if [ ! -f "$batch_dirname/$trigger_file" ]; then
+		# Trigger-file does not exist, so batch is not ready for us, skip it
+		continue
+	fi
 
-    # Mark batch as done, by creating an empty file with the batch's name
-    if ! mkdir "$donedir/$batch_dirname"; then
+	# Skip batches that are already done
+	if [ -f "$donedir/$batch_dirname" ]; then
+		continue
+	fi
 
-        batch_id=$(echo "$batch_dirname" | sed -r 's/^B([^-]+).+/\1/g')
-        roundtrip=$(echo "$batch_dirname" | sed -r 's/^B[^-]+\-RT([0-9]+)/\1/g')
+	# Mark batch as done, by creating an empty file with the batch's name
+	touch "$donedir/$batch_dirname"
 
-        # Create batch in DOMS
-        java -classpath $SCRIPT_PATH/../conf/:$SCRIPT_PATH/../lib/'*' dk.statsbiblioteket.medieplatform.autonomous.newspaper.CreateBatch "$batch_id" "$roundtrip" "$trigger_name" "$url_to_doms" "$doms_username" "$doms_password" "$url_to_pid_gen"
-    fi
+	batch_id=$(echo "$batch_dirname" | sed -r 's/^B([^-]+).+/\1/g')
+	roundtrip=$(echo "$batch_dirname" | sed -r 's/^B[^-]+\-RT([0-9]+)/\1/g')
 
+	# Create batch in DOMS
+	java -classpath $SCRIPT_PATH/../conf/:$SCRIPT_PATH/../lib/'*' dk.statsbiblioteket.medieplatform.autonomous.newspaper.CreateBatch "$batch_id" "$roundtrip" "$trigger_name" "$url_to_doms" "$doms_username" "$doms_password" "$url_to_pid_gen"
 done
 
