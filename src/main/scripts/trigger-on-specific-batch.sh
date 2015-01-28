@@ -34,6 +34,9 @@ do
     [ -z "${!var}" ] && echo "ERROR: $config must define \$$var" && exit 2
 done
 
+exec 200> $donedir/trigger.lock
+flock -n 200 || exit
+
 cd "$path_to_dir_of_batches"
 
 batch_dirname="B${batch_id}-RT${roundtrip}"
