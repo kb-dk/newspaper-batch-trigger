@@ -107,16 +107,16 @@ public class CreateBatch {
 
             }
         }
-        domsEventClient.addEventToItem(batch, premisAgent, now, message, "Data_Received",
+        domsEventClient.appendEventToItem(batch, premisAgent, now, message, "Data_Received",
                                        !newerRoundTripAlreadyReceived);
         if (alreadyApproved){
-            domsEventClient.addEventToItem(batch, premisAgent, now,
+            domsEventClient.appendEventToItem(batch, premisAgent, now,
                                            "Another Roundtrip is already approved, so this batch should be stopped",
                                            STOPPED_STATE, true);
         } else if (!newerRoundTripAlreadyReceived){
             for (Batch roundtrip : roundtrips) {
                 if (!roundtrip.getRoundTripNumber().equals(batch.getRoundTripNumber())) {
-                    domsEventClient.addEventToItem(roundtrip, premisAgent, now,
+                    domsEventClient.appendEventToItem(roundtrip, premisAgent, now,
                                                    "Newer roundtrip (" + batch.getRoundTripNumber()
                                                            + ") has been received, so this batch should be stopped",
                                                    STOPPED_STATE, true);
