@@ -8,7 +8,7 @@
         <version>1.5</version>
     </parent>
 
-    <artifactId>batch-trigger</artifactId>
+    <artifactId>newspaper-batch-trigger</artifactId>
     <version>1.9-SNAPSHOT</version>
 
     <scm>
@@ -102,6 +102,72 @@
                             <files>
                                 <file>${integration.test.newspaper.properties}</file>
                             </files>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>com.spotify</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>0.4.13</version>
+                <executions>
+                    <execution>
+                        <!--Delete the latest build as it will be orphaned by the new build below-->
+                        <id>remove-prev-image</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>removeImage</goal>
+                        </goals>
+                        <configuration>
+                            <imageTags>
+                                <imageTag>latest</imageTag>
+                            </imageTags>
+                            <imageName>${project.artifactId}</imageName>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <!--Build the docker image-->
+                        <id>build-image</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>build</goal>
+                        </goals>
+                        <configuration>
+                            <imageName>${project.artifactId}</imageName>
+                            <dockerDirectory>${project.basedir}/docker</dockerDirectory><!--Where to file the Dockerfile-->
+                            <resources>
+                                <resource><!--Copy the package to the docker dir, so it is available for the Dockerfile-->
+                                    <targetPath>/</targetPath>
+                                    <directory>${project.build.directory}</directory>
+                                    <include>${project.build.finalName}-package.tar.gz</include>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <!--Tag the image with the maven version number-->
+                        <id>tag-image</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>tag</goal>
+                        </goals>
+                        <configuration>
+                            <image>${project.artifactId}</image>
+                            <newName>statsbiblioteket/${project.artifactId}:${project.version}</newName>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <!--Push the image to SBs account on docker hub-->
+                        <id>push-image</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>push</goal>
+                        </goals>
+                        <configuration>
+                            <imageName>statsbiblioteket/${project.artifactId}:${project.version}</imageName>
+                            <serverId>docker-hub</serverId>
+                            <registryUrl>https://index.docker.io/v1/</registryUrl>
                         </configuration>
                     </execution>
                 </executions>
